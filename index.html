@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WheelRide: Human-Aligned Decisions and Driver Commandability</title>
+  <meta name="description" content="WheelRide: Benchmarking Human-Aligned Decisions and Driver Commandability from Lobbies to Streets.">
+  <meta property="og:title" content="WheelRide">
+  <meta property="og:description" content="Benchmarking Human-Aligned Decisions and Driver Commandability from Lobbies to Streets.">
+  <meta property="og:image" content="static/images/figures/fig1_teaser_chairA.jpg">
+  <link rel="icon" href="static/images/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="static/css/site.css">
+</head>
+<body>
+
+<nav class="topnav" id="topnav">
+  <a class="brand" href="#top">WheelRide</a>
+  <div class="navlinks">
+    <a href="#gaps">Two gaps</a>
+    <a href="#dataset">Dataset</a>
+    <a href="#benchmark">Benchmark</a>
+    <a href="#linepilot">LinePilot</a>
+    <a href="#results">Results</a>
+  </div>
+</nav>
+
+<!-- ============================================================ hero -->
+<header class="hero" id="top">
+  <div class="hero-text">
+    <div class="kicker">A real-world benchmark, indoors and outdoors</div>
+    <h1 class="title">WheelRide</h1>
+    <p class="subtitle">Benchmarking Human-Aligned Decisions and Driver Commandability from Lobbies to Streets</p>
+    <div class="affils">
+      <span>Tsinghua University</span>
+      <span class="dot" aria-hidden="true"></span>
+      <span>QUORRA</span>
+    </div>
+    <div class="buttons">
+      <span class="btn soon" title="coming soon"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z M14 2v6h6" /></svg>Paper</span>
+      <span class="btn soon" title="coming soon"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5z M8 8h8 M8 12h8 M8 16h5" /></svg>Supplement</span>
+      <span class="btn soon" title="coming soon"><svg viewBox="0 0 24 24"><path d="M9 7l-5 5 5 5 M15 7l5 5-5 5" /></svg>Code</span>
+      <span class="btn soon" title="coming soon"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6 M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3" /></svg>Data</span>
+    </div>
+    <p class="release">Code, model weights and data will be released upon acceptance.</p>
+  </div>
+  <figure class="hero-art">
+    <canvas id="ascii" aria-label="A ride from an office lobby to the street, its LiDAR drawn as characters"></canvas>
+    <figcaption>116&nbsp;s from an office lobby through a revolving door to the street, Beijing. Every character is LiDAR, the violet trail is the chair.</figcaption>
+  </figure>
+</header>
+
+<!-- ============================================================ teaser -->
+<section class="section teaser">
+  <figure class="figure wide zoomable">
+    <img src="static/images/figures/fig1_teaser_chairA.jpg" alt="Figure 1" loading="eager">
+    <figcaption><b>Seeing is not deciding, and choosing is not driving.</b>
+      (1) A rider drives a wheelchair that carries a fisheye camera and five single-line LiDARs and logs the joystick and the chair's motion.
+      (2) WheelRide rides indoors and outdoors, here a campus exit in Kunshan (outlined), a lobby, a street at night, and a store.
+      (3) A van stands ahead on the right. Over the ride's point cloud seven lines lead from the chair to a goal 12&nbsp;m along the rider's path, five of six zero-shot models pick line 7, and LinePilot picks line 2, the rider's.
+      (4) The driver of LinePilot drives each pick open loop for 3&nbsp;s on the logged frames, and on line 2 it follows the rider.
+      (5) Over 379 test decisions LinePilot agrees with the rider most often and its lines, once driven, close the largest share of the gap between the default line and the rider's.</figcaption>
+  </figure>
+</section>
+
+<!-- ============================================================ abstract -->
+<section class="section narrow" id="abstract">
+  <h2>Abstract</h2>
+  <p>Vision-language agents are increasingly put in charge of learned drivers, and the benchmarks that test this pairing run in simulation, where the driver is assumed to do what it is told.
+  Real rides expose two gaps that this leaves open.
+  <em>Seeing is not deciding:</em> an agent that understands a scene need not choose the way a person would.
+  <em>Choosing is not driving:</em> a well-chosen path helps only if the driver follows it.</p>
+  <p>We present <b>WheelRide</b>, 10 hours and 34.5&nbsp;km of riders driving a sensor-equipped wheelchair through three cities, from lobbies, corridors, and store aisles through doorways to sidewalks and streets, by day and after dark.
+  From the rides we mine 1,538 decision points with the rider's own choice as the answer and define <b>Line Choice</b>, a two-layer evaluation.
+  An agent picks one of seven numbered lines from a camera frame and a LiDAR map, and the pick is scored against the rider's line and, once a world-model driver drives it open loop on the logged frames, against the rider's motion.
+  Counterfactual line shifts on the same frames test whether the driver follows its command at all.</p>
+  <p>Zero-shot models from 8B to 397B parameters do not beat a zero-parameter rule (45.6% top-1).
+  <b>LinePilot</b>, an agent trained on 758 rider decisions that names a line for a world-model driver, does (52.0%, +6.3 points, paired, three seeds all above the rule).
+  Its driver moves toward a shifted line at 97% of decisions, and its lines close 43% of the execution gap between the default line and the rider's.</p>
+</section>
+
+<!-- ============================================================ two gaps -->
+<section class="section" id="gaps">
+  <h2 class="center">Two gaps that simulation leaves open</h2>
+  <div class="gap-grid">
+    <article class="card">
+      <div class="card-head"><span class="num">1</span><h3>Seeing is not deciding</h3></div>
+      <div class="anim-wrap">
+        <canvas id="decision" class="anim" aria-label="Seven lines at a campus exit, the zero-shot pick and the rider's line"></canvas>
+        <img class="inset" src="static/images/decision_campus_cam.jpg" alt="The camera frame at this decision">
+        <button class="replay" data-target="decision" aria-label="replay">&#8635;</button>
+      </div>
+      <p>At a campus exit a van stands ahead on the right. Seven lines lead to a goal 12&nbsp;m along the rider's path.
+      Five of six zero-shot models pick <span class="c-amber">line 7</span> and say it avoids the van.
+      The rider keeps right, and LinePilot picks the rider's <span class="c-violet">line 2</span>.</p>
+    </article>
+    <article class="card">
+      <div class="card-head"><span class="num">2</span><h3>Choosing is not driving</h3></div>
+      <div class="anim-wrap">
+        <canvas id="fan" class="anim" aria-label="The driver given each of the seven lines on the same frames"></canvas>
+        <button class="replay" data-target="fan" aria-label="replay">&#8635;</button>
+      </div>
+      <p>A line helps only if the driver follows it. On the same logged frames we hand the driver each of the seven lines and integrate 3.2&nbsp;s of its motion.
+      The paths fan out in the order of the lines. Over the test split the driver moves toward a shifted line at <b>97%</b> of decisions.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ============================================================ dataset -->
+<section class="section" id="dataset">
+  <h2 class="center">WheelRide: rides from lobbies to streets</h2>
+  <p class="lead center">Riders drove a powered wheelchair through Beijing, Kunshan, and Shanghai. Every frame carries what the rider commanded and how the chair actually moved.</p>
+
+  <div class="stats" id="stats">
+    <div class="stat"><span class="v" data-to="10.0" data-dec="1">0</span><span class="u">hours</span></div>
+    <div class="stat"><span class="v" data-to="34.5" data-dec="1">0</span><span class="u">km</span></div>
+    <div class="stat"><span class="v" data-to="3">0</span><span class="u">cities</span></div>
+    <div class="stat"><span class="v" data-to="1538" data-sep="1">0</span><span class="u">decision points</span></div>
+    <div class="stat"><span class="v" data-to="23" data-suf="%">0</span><span class="u">indoors</span></div>
+    <div class="stat"><span class="v" data-to="18" data-suf="%">0</span><span class="u">after dark</span></div>
+  </div>
+
+  <div class="platform">
+    <div class="chairs">
+      <img src="static/images/chair/chair_front.webp" alt="The wheelchair, front" loading="lazy">
+      <img src="static/images/chair/chair_back.webp" alt="The wheelchair, back" loading="lazy">
+    </div>
+    <div class="sensors">
+      <h3>The chair</h3>
+      <ul class="spec">
+        <li><span>fisheye camera</span><b>1920 × 1080, 30 fps</b></li>
+        <li><span>level LiDARs</span><b>3, front left, front right, back</b></li>
+        <li><span>tilted LiDARs</span><b>2, at the ground ahead</b></li>
+        <li><span>also logged</span><b>IMU, wheel odometry, joystick</b></li>
+        <li><span>chairs</span><b>3 of the same model, one per city</b></li>
+      </ul>
+      <p class="note">The driver learns the motion the chair made under the rider, not the joystick command.</p>
+    </div>
+  </div>
+
+  <h3 class="sub">One ride, replayed</h3>
+  <p class="center small">A 116&nbsp;s ride in Beijing from an office lobby through a revolving door to the street, over its aligned LiDAR. At each decision point the seven lines appear, with the rider's line in ink.</p>
+  <div class="replay-box" id="replay">
+    <div class="replay-map"><canvas id="ridemap" aria-label="Top view of the ride with its decision points"></canvas></div>
+    <div class="replay-cam">
+      <div class="camframe"><div id="ridecam" class="sprite" role="img" aria-label="Front camera around the decision"></div><div class="camnote" id="camnote">front camera, shown around decision points</div></div>
+      <div class="readout" id="readout">&nbsp;</div>
+      <div class="controls">
+        <button id="rideplay" class="ctl" aria-label="play or pause">&#10074;&#10074;</button>
+        <input id="ridescrub" type="range" min="0" max="116" step="0.1" value="0" aria-label="time in the ride">
+        <span class="mono" id="ridetime">0.0 s</span>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub">Places</h3>
+  <p class="center small">Five seconds around six decision points, played at twice real time.</p>
+  <div class="clips" id="clips"></div>
+
+  <details class="more">
+    <summary>The dataset figure from the paper</summary>
+    <figure class="figure zoomable"><img src="static/images/figures/fig2_dataset.jpg" alt="Figure 2" loading="lazy">
+      <figcaption>Nine places with three fisheye frames each, the chair and its sensors, two rides from above with their aligned LiDAR, and twelve of the 235 benchmark rides.</figcaption></figure>
+  </details>
+</section>
+
+<!-- ============================================================ benchmark -->
+<section class="section" id="benchmark">
+  <h2 class="center">Line Choice: a decision-to-execution benchmark</h2>
+  <figure class="figure wide zoomable"><img src="static/images/figures/fig3_benchmark.jpg" alt="Figure 3" loading="lazy">
+    <figcaption>(a) An 80&nbsp;s ride in Kunshan and its 16 decision points, mined with fixed rules and no annotation. (b) One of them: the agent's two inputs, and the decision over the ride's point cloud.</figcaption></figure>
+  <div class="three">
+    <div class="pill-card">
+      <div class="tag">decision layer</div>
+      <h4>Does the agent decide as the rider did?</h4>
+      <p>An agent sees a camera frame and a LiDAR map with seven numbered lines, is given no building map and no route, and names a line. Top-1 against the rider's line, and an acceptable rate for neighbouring lines.</p>
+    </div>
+    <div class="pill-card">
+      <div class="tag">execution layer</div>
+      <h4>Does the chosen line drive like the rider?</h4>
+      <p>One shared world-model driver drives the pick open loop on the logged frames that follow. Its motion is compared with the rider's, so differences come from the decisions alone.</p>
+    </div>
+    <div class="pill-card">
+      <div class="tag">commandability</div>
+      <h4>Does the driver obey?</h4>
+      <p>The line is shifted while the frames stay fixed, and the driver has to move with it. Pure pursuit, a tracker that reads nothing but the line, is the reference.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ LinePilot -->
+<section class="section" id="linepilot">
+  <h2 class="center">LinePilot</h2>
+  <p class="lead center">An agent names one of the numbered lines, a single token. A world-model driver, whose state does not depend on the line, drives it.</p>
+  <figure class="figure wide zoomable"><img src="static/images/figures/fig4_linepilot.jpg" alt="Figure 4" loading="lazy">
+    <figcaption>The agent, an 8B vision-language model with LoRA, learns from the rider's decisions. The driver, a world model with no action input, reads the line only at its action head and learns from the chair's measured motion.</figcaption></figure>
+</section>
+
+<!-- ============================================================ results -->
+<section class="section" id="results">
+  <h2 class="center">Results</h2>
+  <div class="numbers">
+    <div class="num-card"><div class="big c-teal">45.6%</div><div class="lbl">top-1 of a zero-parameter rule, the open line nearest the default line</div></div>
+    <div class="num-card"><div class="big c-amber">&le; 42.2%</div><div class="lbl">every zero-shot model from 8B to 397B parameters</div></div>
+    <div class="num-card hl"><div class="big c-violet">52.0%</div><div class="lbl">LinePilot, +6.3 points over the rule, paired 95% interval 2.9 to 9.8</div></div>
+    <div class="num-card hl"><div class="big c-violet">43%</div><div class="lbl">of the gap between the default line and the rider's closed by its lines once driven</div></div>
+  </div>
+  <figure class="figure wide zoomable"><img src="static/images/figures/fig5_results.png" alt="Figure 5" loading="lazy">
+    <figcaption>Ten views of the test split. Size does not help zero-shot models, only LinePilot beats the rule, rider decisions teach it, and it is best on both layers.</figcaption></figure>
+  <figure class="figure wide zoomable"><img src="static/images/figures/fig6_qual.jpg" alt="Figure 6" loading="lazy">
+    <figcaption>Eight test decisions, four where LinePilot picks the rider's line and four where it does not, with the picks of the rider, LinePilot, Qwen3.5 397B, Qwen3-VL 8B and the rule.</figcaption></figure>
+  <details class="more">
+    <summary>Twelve more decisions, chosen by a fixed rule</summary>
+    <figure class="figure zoomable"><img src="static/images/figures/figS6_more.jpg" alt="Figure S6" loading="lazy">
+      <figcaption>Three per setting label, indoors, through a doorway, outdoors and at night, with every agent's pick.</figcaption></figure>
+  </details>
+</section>
+
+<footer class="footer">
+  <div>WheelRide &middot; Tsinghua University &middot; QUORRA</div>
+  <div class="small">Page layout in the spirit of <a href="https://nerfies.github.io/" target="_blank" rel="noopener">Nerfies</a>.</div>
+</footer>
+
+<div class="lightbox" id="lightbox" aria-hidden="true"><img alt=""></div>
+<script src="static/data/ride_lobby_street.js"></script>
+<script src="static/data/decision_campus.js"></script>
+<script src="static/data/fan_kunshan.js"></script>
+<script src="static/data/clips.js"></script>
+<script src="static/js/site.js"></script>
+</body>
+</html>
